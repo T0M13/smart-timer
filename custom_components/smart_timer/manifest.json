@@ -1,0 +1,13 @@
+{
+  "domain": "smart_timer",
+  "name": "Smart Timer",
+  "codeowners": ["@T0M13"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/T0M13/smart-timer",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/T0M13/smart-timer/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

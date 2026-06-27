@@ -1,0 +1,173 @@
+start_timer:
+  name: Start Timer
+  description: Start a countdown timer to turn a device on or off after a duration.
+  fields:
+    entity_id:
+      name: Entity
+      description: The managed device entity.
+      required: true
+      selector:
+        entity:
+    minutes:
+      name: Duration (minutes)
+      description: Timer duration in minutes.
+      required: true
+      selector:
+        number:
+          min: 0.1
+          max: 1440
+          step: 0.1
+          unit_of_measurement: min
+    action:
+      name: Action
+      description: What to do when the timer expires.
+      required: false
+      default: "turn_off"
+      selector:
+        select:
+          options:
+            - "turn_on"
+            - "turn_off"
+
+cancel_timer:
+  name: Cancel Timer
+  description: Cancel the active timer for a device.
+  fields:
+    entity_id:
+      name: Entity
+      description: The managed device entity.
+      required: true
+      selector:
+        entity:
+
+add_schedule:
+  name: Add Schedule
+  description: Add a recurring schedule rule for a device.
+  fields:
+    entity_id:
+      name: Entity
+      description: The managed device entity.
+      required: true
+      selector:
+        entity:
+    action:
+      name: Action
+      description: Action to perform (turn_on or turn_off).
+      required: true
+      selector:
+        select:
+          options:
+            - "turn_on"
+            - "turn_off"
+    time:
+      name: Time
+      description: Time to execute (HH:MM format).
+      required: true
+      selector:
+        time:
+    days:
+      name: Days
+      description: "Days of week (0=Mon, 6=Sun). Empty = every day."
+      required: false
+      selector:
+        select:
+          multiple: true
+          options:
+            - label: Monday
+              value: "0"
+            - label: Tuesday
+              value: "1"
+            - label: Wednesday
+              value: "2"
+            - label: Thursday
+              value: "3"
+            - label: Friday
+              value: "4"
+            - label: Saturday
+              value: "5"
+            - label: Sunday
+              value: "6"
+
+remove_schedule:
+  name: Remove Schedule
+  description: Remove a schedule rule by ID.
+  fields:
+    entity_id:
+      name: Entity
+      description: The managed device entity.
+      required: true
+      selector:
+        entity:
+    schedule_id:
+      name: Schedule ID
+      description: The ID of the schedule to remove.
+      required: true
+      selector:
+        text:
+
+set_away_mode:
+  name: Set Away Mode
+  description: Configure away mode settings for a device.
+  fields:
+    entity_id:
+      name: Entity
+      description: The managed device entity.
+      required: true
+      selector:
+        entity:
+    enabled:
+      name: Enabled
+      description: Enable or disable away mode.
+      required: true
+      selector:
+        boolean:
+    start_time:
+      name: Start Time
+      description: Away window start (HH:MM).
+      required: false
+      default: "18:00"
+      selector:
+        time:
+    end_time:
+      name: End Time
+      description: Away window end (HH:MM).
+      required: false
+      default: "23:00"
+      selector:
+        time:
+    min_on_minutes:
+      name: Min On Duration
+      description: Minimum minutes to stay on.
+      required: false
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 120
+    max_on_minutes:
+      name: Max On Duration
+      description: Maximum minutes to stay on.
+      required: false
+      default: 45
+      selector:
+        number:
+          min: 1
+          max: 120
+    min_off_minutes:
+      name: Min Off Duration
+      description: Minimum minutes to stay off.
+      required: false
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 120
+    max_off_minutes:
+      name: Max Off Duration
+      description: Maximum minutes to stay off.
+      required: false
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 120
