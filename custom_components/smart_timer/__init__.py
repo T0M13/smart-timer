@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import CoreState, HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
@@ -75,6 +76,27 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
     return True
 
 
+VALID_UNIQUE_SUFFIXES = frozenset({
+    "auto_off", "turn_off_in", "turn_on_in",
+    "timer_active", "time_remaining", "next_schedule",
+})
+
+
+def _cleanup_orphaned_entities(
+    hass: HomeAssistant, entry: ConfigEntry, slug: str
+) -> None:
+    """Remove entities from previous versions that no longer exist."""
+    ent_reg = er.async_get(hass)
+    prefix = f"{DOMAIN}_{slug}_"
+    for ent in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+        uid = ent.unique_id or ""
+        if uid.startswith(prefix):
+            suffix = uid[len(prefix):]
+            if suffix not in VALID_UNIQUE_SUFFIXES:
+                _LOGGER.info("Removing orphaned entity %s (%s)", ent.entity_id, uid)
+                ent_reg.async_remove(ent.entity_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     domain_data = hass.data.setdefault(DOMAIN, {
         "store": Store(hass, STORAGE_VERSION, STORAGE_KEY),
@@ -91,6 +113,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     domain_data["coordinators"][entry.entry_id] = coordinator
 
     await coordinator.async_setup()
+
+    # Clean up orphaned entities from older versions
+    _cleanup_orphaned_entities(hass, entry, coordinator.slug)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     def _schedule_recover() -> None:
