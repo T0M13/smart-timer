@@ -19,11 +19,6 @@
         "name": "Auto-Off Duration"
       }
     },
-    "switch": {
-      "away_mode": {
-        "name": "Away Mode"
-      }
-    },
     "binary_sensor": {
       "timer_active": {
         "name": "Timer Active"
@@ -32,9 +27,6 @@
     "sensor": {
       "time_remaining": {
         "name": "Time Remaining"
-      },
-      "daily_runtime": {
-        "name": "Daily Runtime"
       },
       "next_schedule": {
         "name": "Next Schedule"

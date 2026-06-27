@@ -14,8 +14,6 @@ from homeassistant.helpers.event import async_track_time_interval
 from .const import DOMAIN
 from .coordinator import SmartTimerCoordinator, signal_update
 
-_RUNTIME_REFRESH = timedelta(seconds=60)
-
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -23,7 +21,6 @@ async def async_setup_entry(
     coordinator: SmartTimerCoordinator = hass.data[DOMAIN]["coordinators"][entry.entry_id]
     async_add_entities([
         TimeRemainingSensor(coordinator),
-        DailyRuntimeSensor(coordinator),
         NextScheduleSensor(coordinator),
     ])
 
@@ -95,50 +92,6 @@ class TimeRemainingSensor(SensorEntity):
         self.async_write_ha_state()
 
 
-class DailyRuntimeSensor(SensorEntity):
-    """Shows how long the device has been on today."""
-
-    _attr_has_entity_name = True
-    _attr_translation_key = "daily_runtime"
-    _attr_should_poll = False
-    _attr_icon = "mdi:chart-timeline-variant"
-
-    def __init__(self, coordinator: SmartTimerCoordinator) -> None:
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{DOMAIN}_{coordinator.slug}_daily_runtime"
-        self._attr_device_info = coordinator.device_info
-        self.entity_id = f"sensor.{coordinator.slug}_daily_runtime"
-        self._unsub_interval = None
-
-    @property
-    def native_value(self) -> str:
-        return self._coordinator.runtime_display
-
-    @property
-    def extra_state_attributes(self) -> dict:
-        return {"seconds": round(self._coordinator.current_runtime_seconds)}
-
-    async def async_added_to_hass(self) -> None:
-        @callback
-        def _update() -> None:
-            self.async_write_ha_state()
-
-        @callback
-        def _tick(now: datetime) -> None:
-            self.async_write_ha_state()
-
-        self.async_on_remove(
-            async_dispatcher_connect(
-                self.hass, signal_update(self._coordinator.entity_id), _update
-            )
-        )
-        # Periodic refresh for live runtime counter
-        self._unsub_interval = async_track_time_interval(
-            self.hass, _tick, _RUNTIME_REFRESH
-        )
-        self.async_on_remove(lambda: self._unsub_interval() if self._unsub_interval else None)
-
-
 class NextScheduleSensor(SensorEntity):
     """Shows the next scheduled action time."""
 
@@ -179,7 +132,6 @@ class NextScheduleSensor(SensorEntity):
         return {
             "schedules": formatted,
             "schedule_count": len(schedules),
-            "away_mode": self._coordinator.away_enabled,
         }
 
     async def async_added_to_hass(self) -> None:
@@ -196,7 +148,6 @@ class NextScheduleSensor(SensorEntity):
                 self.hass, signal_update(self._coordinator.entity_id), _update
             )
         )
-        # Refresh every 5 minutes so "next schedule" stays current
         self._unsub_interval = async_track_time_interval(
             self.hass, _tick, timedelta(minutes=5)
         )

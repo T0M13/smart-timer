@@ -4,19 +4,15 @@ import asyncio
 import logging
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import CoreState, HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers.event import (
-    async_track_state_change_event,
-)
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
 from .const import (
     ACTION_TURN_OFF,
-    ACTION_TURN_ON,
     CONF_ENTITY_ID,
     DOMAIN,
     PLATFORMS,
@@ -71,23 +67,10 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
                 f"Schedule {call.data['schedule_id']} not found."
             )
 
-    async def handle_set_away_mode(call: ServiceCall) -> None:
-        coord = _find_coordinator(hass, call.data["entity_id"])
-        await coord.async_set_away_mode(
-            enabled=call.data["enabled"],
-            start_time=call.data.get("start_time"),
-            end_time=call.data.get("end_time"),
-            min_on=call.data.get("min_on_minutes"),
-            max_on=call.data.get("max_on_minutes"),
-            min_off=call.data.get("min_off_minutes"),
-            max_off=call.data.get("max_off_minutes"),
-        )
-
     hass.services.async_register(DOMAIN, "start_timer", handle_start_timer)
     hass.services.async_register(DOMAIN, "cancel_timer", handle_cancel_timer)
     hass.services.async_register(DOMAIN, "add_schedule", handle_add_schedule)
     hass.services.async_register(DOMAIN, "remove_schedule", handle_remove_schedule)
-    hass.services.async_register(DOMAIN, "set_away_mode", handle_set_away_mode)
 
     return True
 
@@ -110,7 +93,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_setup()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Recovery
     def _schedule_recover() -> None:
         coordinator.recover_task = hass.async_create_background_task(
             coordinator.async_recover(), name=f"smart_timer_recover_{entry.entry_id}"
@@ -125,14 +107,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _on_started)
         )
 
-    # State change listener
     entry.async_on_unload(
         async_track_state_change_event(
             hass, [entity_id], coordinator.async_handle_state_change
         )
     )
 
-    # Shutdown listener
     entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, coordinator.handle_shutdown)
     )
