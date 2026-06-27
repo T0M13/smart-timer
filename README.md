@@ -1,15 +1,26 @@
-# Smart Timer
+<p align="center">
+  <img src="icon.png" alt="Smart Timer" width="128" height="128">
+</p>
 
-A Home Assistant custom integration that replaces the Tapo app's timer, scheduling, and away mode features — works with **any** HA device (switches, lights, fans, covers, etc.).
+<h1 align="center">Smart Timer</h1>
+
+<p align="center">
+  A Home Assistant custom integration that adds timers, auto-off, and scheduling to <strong>any</strong> HA device (switches, lights, fans, covers, etc.).
+</p>
+
+---
 
 ## Features
 
-- **Auto-Off Timer** — automatically turn off a device after a set duration every time it turns on
-- **One-Shot Timers** — turn a device off or on after X minutes (via service call or card)
+- **Turn Off In** — set minutes, device turns off after countdown
+- **Turn On In** — set minutes, device turns on after countdown
+- **Auto-Off Duration** — set once, device auto-turns-off every time it turns on
+- **Timer Active** — binary sensor showing if a timer is running
+- **Time Remaining** — live countdown sensor (MM:SS format)
 - **Scheduling** — recurring on/off rules by time and day of week
-- **Away Mode** — random on/off within a time window to simulate presence
-- **Runtime Tracking** — daily on-time counter, resets at midnight
-- **Lovelace Card** — polished UI card with countdown, quick timers, schedule management
+- **Lovelace Card** — toggle, preset buttons, auto-off input, schedule management
+
+Everything works directly from the device page — no YAML, no Developer Tools needed.
 
 ## Installation
 
@@ -26,16 +37,19 @@ A Home Assistant custom integration that replaces the Tapo app's timer, scheduli
 
 ## Setup
 
-1. Go to Settings → Devices & Services → Add Integration
-2. Search for "Smart Timer"
+1. Go to **Settings → Devices & Services → Add Integration**
+2. Search for **Smart Timer**
 3. Select a device to manage
-4. The integration creates entities on the device card:
-   - `number.<device>_auto_off` — auto-off duration (0 = disabled)
-   - `binary_sensor.<device>_timer_active` — is a timer running?
-   - `sensor.<device>_time_remaining` — countdown display
-   - `sensor.<device>_daily_runtime` — today's on-time
-   - `sensor.<device>_next_schedule` — next scheduled action
-   - `switch.<device>_away_mode` — away mode toggle
+4. The integration creates entities on the device page:
+
+| Entity | Type | Description |
+|--------|------|-------------|
+| `number.<device>_turn_off_in` | Number | Set minutes → starts turn-off countdown, resets to 0 when done |
+| `number.<device>_turn_on_in` | Number | Set minutes → starts turn-on countdown, resets to 0 when done |
+| `number.<device>_auto_off` | Number | Persistent auto-off duration (0 = disabled). Device auto-turns-off every time it turns on |
+| `binary_sensor.<device>_timer_active` | Binary Sensor | ON while a timer is running |
+| `sensor.<device>_time_remaining` | Sensor | Live countdown display (MM:SS) |
+| `sensor.<device>_next_schedule` | Sensor | Next scheduled action time, full schedule list in attributes |
 
 ## Lovelace Card
 
@@ -45,8 +59,6 @@ entity: switch.living_room_light
 name: Living Room  # optional
 presets: [15, 30, 60, 120]  # optional, timer preset buttons in minutes
 show_schedules: true  # optional, default true
-show_away: true  # optional, default true
-show_runtime: true  # optional, default true
 ```
 
 ## Services
@@ -78,34 +90,18 @@ data:
 ### `smart_timer.remove_schedule`
 Remove a schedule by ID.
 
-### `smart_timer.set_away_mode`
-Configure away mode.
-```yaml
-service: smart_timer.set_away_mode
-data:
-  entity_id: switch.living_room_light
-  enabled: true
-  start_time: "18:00"
-  end_time: "23:00"
-  min_on_minutes: 10
-  max_on_minutes: 45
-  min_off_minutes: 5
-  max_off_minutes: 30
-```
-
-## Events
-
-- `smart_timer_expired` — fired when a timer expires (contains `entity_id` and `action`)
-- `smart_timer_schedule_fired` — fired when a schedule executes
-
 ## Compared to time_off
 
 | Feature | time_off | Smart Timer |
 |---------|----------|-------------|
 | Auto-off timer | Yes | Yes |
-| Turn-on timer | No | Yes |
+| Turn-off-in timer | No | Yes |
+| Turn-on-in timer | No | Yes |
 | Scheduling | No | Yes |
-| Away mode | No | Yes |
-| Runtime tracking | No | Yes |
 | Lovelace card | No | Yes |
 | Persists across restarts | Yes | Yes |
+| Works from device page | No | Yes |
+
+## License
+
+MIT
