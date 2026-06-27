@@ -123,6 +123,10 @@ class DailyRuntimeSensor(SensorEntity):
         def _update() -> None:
             self.async_write_ha_state()
 
+        @callback
+        def _tick(now: datetime) -> None:
+            self.async_write_ha_state()
+
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, signal_update(self._coordinator.entity_id), _update
@@ -130,7 +134,7 @@ class DailyRuntimeSensor(SensorEntity):
         )
         # Periodic refresh for live runtime counter
         self._unsub_interval = async_track_time_interval(
-            self.hass, lambda now: self.async_write_ha_state(), _RUNTIME_REFRESH
+            self.hass, _tick, _RUNTIME_REFRESH
         )
         self.async_on_remove(lambda: self._unsub_interval() if self._unsub_interval else None)
 
@@ -183,6 +187,10 @@ class NextScheduleSensor(SensorEntity):
         def _update() -> None:
             self.async_write_ha_state()
 
+        @callback
+        def _tick(now: datetime) -> None:
+            self.async_write_ha_state()
+
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, signal_update(self._coordinator.entity_id), _update
@@ -190,6 +198,6 @@ class NextScheduleSensor(SensorEntity):
         )
         # Refresh every 5 minutes so "next schedule" stays current
         self._unsub_interval = async_track_time_interval(
-            self.hass, lambda now: self.async_write_ha_state(), timedelta(minutes=5)
+            self.hass, _tick, timedelta(minutes=5)
         )
         self.async_on_remove(lambda: self._unsub_interval() if self._unsub_interval else None)
