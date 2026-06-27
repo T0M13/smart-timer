@@ -17,6 +17,12 @@
     "number": {
       "auto_off": {
         "name": "Auto-Off Duration"
+      },
+      "turn_off_in": {
+        "name": "Turn Off In"
+      },
+      "turn_on_in": {
+        "name": "Turn On In"
       }
     },
     "binary_sensor": {
