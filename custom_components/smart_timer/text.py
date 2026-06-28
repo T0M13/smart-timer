@@ -10,7 +10,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, format_days, parse_days
 from .coordinator import SmartTimerCoordinator, signal_update
 
 _TIME_RE = re.compile(r"^([01]?\d|2[0-3]):([0-5]\d)$")
@@ -96,7 +96,9 @@ class NewScheduleDaysText(TextEntity, RestoreEntity):
         }
 
     async def async_set_value(self, value: str) -> None:
-        self._coordinator.new_schedule_input["days"] = value.strip()
+        parsed = parse_days(value)
+        normalized = format_days(parsed)
+        self._coordinator.new_schedule_input["days"] = normalized
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:

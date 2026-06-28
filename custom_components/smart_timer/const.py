@@ -9,24 +9,24 @@ PLATFORMS = ["number", "binary_sensor", "sensor", "switch", "select", "text", "b
 DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 DAY_PARSE = {
-    "mon": 0, "monday": 0,
-    "tue": 1, "tuesday": 1,
-    "wed": 2, "wednesday": 2,
-    "thu": 3, "thursday": 3,
-    "fri": 4, "friday": 4,
-    "sat": 5, "saturday": 5,
-    "sun": 6, "sunday": 6,
+    "mon": 0, "mo": 0, "monday": 0,
+    "tue": 1, "tu": 1, "tuesday": 1,
+    "wed": 2, "we": 2, "wednesday": 2,
+    "thu": 3, "th": 3, "thursday": 3,
+    "fri": 4, "fr": 4, "friday": 4,
+    "sat": 5, "sa": 5, "saturday": 5,
+    "sun": 6, "su": 6, "sunday": 6,
 }
 
 
 def parse_days(text: str) -> list[int]:
     """Parse day text like 'Mon,Tue,Fri' or 'Weekdays' into day numbers."""
     text = text.strip().lower()
-    if not text or text in ("every day", "*", "all"):
+    if not text or text in ("every day", "*", "all", "daily"):
         return []
-    if text == "weekdays":
+    if text in ("weekdays", "weekday", "work", "workdays"):
         return [0, 1, 2, 3, 4]
-    if text == "weekend":
+    if text in ("weekend", "weekends"):
         return [5, 6]
     days = []
     for part in text.replace(" ", "").split(","):
