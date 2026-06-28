@@ -90,17 +90,21 @@ VALID_UNIQUE_SUFFIXES = frozenset({
     "auto_off", "turn_off_in", "turn_on_in",
     "timer_active", "time_remaining", "next_schedule",
     "schedule_action", "schedule_time", "schedule_days",
-    "add_schedule", "remove_last_schedule",
+    "add_schedule", "remove_schedule", "remove_schedule_select",
 })
 
-# Schedule switch entities use "sched_" prefix, handled separately
-def _is_valid_unique_id(uid: str, prefix: str) -> bool:
+def _is_valid_unique_id(uid: str, prefix: str, schedule_ids: set[str]) -> bool:
     suffix = uid[len(prefix):]
-    return suffix in VALID_UNIQUE_SUFFIXES or suffix.startswith("sched_")
+    if suffix in VALID_UNIQUE_SUFFIXES:
+        return True
+    if suffix.startswith("sched_"):
+        sched_id = suffix[len("sched_"):]
+        return sched_id in schedule_ids
+    return False
 
 
 def _cleanup_orphaned_entities(
-    hass: HomeAssistant, entry: ConfigEntry, slug: str
+    hass: HomeAssistant, entry: ConfigEntry, slug: str, schedule_ids: set[str]
 ) -> None:
     """Remove entities from previous versions that no longer exist."""
     ent_reg = er.async_get(hass)
@@ -108,7 +112,7 @@ def _cleanup_orphaned_entities(
     for ent in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
         uid = ent.unique_id or ""
         if uid.startswith(prefix):
-            if not _is_valid_unique_id(uid, prefix):
+            if not _is_valid_unique_id(uid, prefix, schedule_ids):
                 _LOGGER.info("Removing orphaned entity %s (%s)", ent.entity_id, uid)
                 ent_reg.async_remove(ent.entity_id)
 
@@ -131,7 +135,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_setup()
 
     # Clean up orphaned entities from older versions
-    _cleanup_orphaned_entities(hass, entry, coordinator.slug)
+    sched_ids = {s["id"] for s in coordinator.schedules}
+    _cleanup_orphaned_entities(hass, entry, coordinator.slug, sched_ids)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

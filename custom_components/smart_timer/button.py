@@ -20,7 +20,7 @@ async def async_setup_entry(
     coordinator: SmartTimerCoordinator = hass.data[DOMAIN]["coordinators"][entry.entry_id]
     async_add_entities([
         AddScheduleButton(coordinator),
-        RemoveLastScheduleButton(coordinator),
+        RemoveScheduleButton(coordinator),
     ])
 
 
@@ -47,31 +47,24 @@ class AddScheduleButton(ButtonEntity):
             days=days,
             enabled=True,
         )
-        _LOGGER.info(
-            "Schedule added for %s: %s at %s (%s)",
-            self._coordinator.entity_id,
-            inp.get("action"),
-            inp.get("time"),
-            inp.get("days"),
-        )
 
 
-class RemoveLastScheduleButton(ButtonEntity):
-    """Removes the most recently added schedule."""
+class RemoveScheduleButton(ButtonEntity):
+    """Removes the schedule selected in the remove_schedule select entity."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "remove_last_schedule"
+    _attr_translation_key = "remove_schedule"
     _attr_should_poll = False
-    _attr_icon = "mdi:calendar-minus"
+    _attr_icon = "mdi:calendar-remove"
 
     def __init__(self, coordinator: SmartTimerCoordinator) -> None:
         self._coordinator = coordinator
-        self._attr_unique_id = f"{DOMAIN}_{coordinator.slug}_remove_last_schedule"
+        self._attr_unique_id = f"{DOMAIN}_{coordinator.slug}_remove_schedule"
         self._attr_device_info = coordinator.device_info
-        self.entity_id = f"button.{coordinator.slug}_remove_last_schedule"
+        self.entity_id = f"button.{coordinator.slug}_remove_schedule"
 
     async def async_press(self) -> None:
-        if self._coordinator.schedules:
-            last = self._coordinator.schedules[-1]
-            await self._coordinator.async_remove_schedule(last["id"])
-            _LOGGER.info("Removed last schedule %s", last["id"])
+        selected = self._coordinator.selected_schedule_to_remove
+        if selected:
+            await self._coordinator.async_remove_schedule(selected)
+            self._coordinator.selected_schedule_to_remove = None

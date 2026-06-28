@@ -6,6 +6,7 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -19,6 +20,10 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     coordinator: SmartTimerCoordinator = hass.data[DOMAIN]["coordinators"][entry.entry_id]
+
+    # Per-schedule switches only (no master toggle)
+
+    # Dynamic per-schedule switches
     tracked: dict[str, ScheduleSwitch] = {}
     key = f"sched_switches_{entry.entry_id}"
     hass.data[DOMAIN][key] = tracked
@@ -39,11 +44,16 @@ async def async_setup_entry(
             async_add_entities(new_entities)
 
         # Remove deleted
+        ent_reg = er.async_get(hass)
         for sid in list(tracked):
             if sid not in sched_ids:
                 entity = tracked.pop(sid)
                 _LOGGER.info("Removing schedule switch entity %s", sid)
-                hass.async_create_task(entity.async_remove())
+                # Remove from entity registry so it fully disappears
+                if entity.entity_id:
+                    ent_reg.async_remove(entity.entity_id)
+                else:
+                    hass.async_create_task(entity.async_remove())
 
     @callback
     def _on_update() -> None:

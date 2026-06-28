@@ -77,6 +77,9 @@ class SmartTimerCoordinator:
         self.schedules: list[dict] = []
         self._unsub_schedules: list[CALLBACK_TYPE] = []
 
+        # Selected schedule for removal via dropdown
+        self.selected_schedule_to_remove: str | None = None
+
         # Input state for creating new schedules via entities
         self.new_schedule_input: dict = {
             "action": "turn_on",

@@ -27,7 +27,8 @@
       "next_schedule": { "name": "Next Schedule" }
     },
     "select": {
-      "schedule_action": { "name": "Schedule Action" }
+      "schedule_action": { "name": "Schedule Action" },
+      "remove_schedule_select": { "name": "Select Schedule to Remove" }
     },
     "text": {
       "schedule_time": { "name": "Schedule Time" },
@@ -35,7 +36,7 @@
     },
     "button": {
       "add_schedule": { "name": "Add Schedule" },
-      "remove_last_schedule": { "name": "Remove Last Schedule" }
+      "remove_schedule": { "name": "Remove Schedule" }
     }
   }
 }
