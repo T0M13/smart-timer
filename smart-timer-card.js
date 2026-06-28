@@ -182,6 +182,30 @@ class SmartTimerCard extends HTMLElement {
         }
         .sched-action.on { background: #e8f5e9; color: #2e7d32; }
         .sched-action.off { background: #fce4ec; color: #c62828; }
+        .sched-item.disabled { opacity: 0.45; }
+        .sched-toggle {
+          width: 36px; height: 20px;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          position: relative;
+          transition: background .2s;
+          flex-shrink: 0;
+        }
+        .sched-toggle.on { background: var(--primary-color, #03a9f4); }
+        .sched-toggle.off { background: var(--disabled-color, #bdbdbd); }
+        .sched-toggle::after {
+          content: '';
+          position: absolute;
+          top: 2px;
+          width: 16px; height: 16px;
+          border-radius: 50%;
+          background: #fff;
+          transition: left .2s;
+        }
+        .sched-toggle.on::after { left: 18px; }
+        .sched-toggle.off::after { left: 2px; }
+        .sched-actions { display: flex; gap: 4px; align-items: center; }
         .sched-del {
           background: none; border: none;
           color: var(--secondary-text-color);
@@ -326,7 +350,8 @@ class SmartTimerCard extends HTMLElement {
       const schedList = root.getElementById("schedules");
       for (const s of schedules) {
         const item = document.createElement("div");
-        item.className = "sched-item";
+        const isEnabled = s.enabled !== false;
+        item.className = `sched-item${isEnabled ? '' : ' disabled'}`;
         const actionClass = s.action === "turn_on" ? "on" : "off";
         item.innerHTML = `
           <div class="sched-info">
@@ -334,10 +359,20 @@ class SmartTimerCard extends HTMLElement {
             <span>${s.time}</span>
             <span style="color:var(--secondary-text-color);font-size:11px">${s.days}</span>
           </div>
-          <button class="sched-del" data-id="${s.id}">&times;</button>
+          <div class="sched-actions">
+            <button class="sched-toggle ${isEnabled ? 'on' : 'off'}" data-id="${s.id}"></button>
+            <button class="sched-del" data-id="${s.id}">&times;</button>
+          </div>
         `;
         schedList.appendChild(item);
       }
+      schedList.querySelectorAll(".sched-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+          this._hass.callService("smart_timer", "toggle_schedule", {
+            entity_id: entity, schedule_id: btn.dataset.id
+          });
+        });
+      });
       schedList.querySelectorAll(".sched-del").forEach(btn => {
         btn.addEventListener("click", () => {
           this._hass.callService("smart_timer", "remove_schedule", {

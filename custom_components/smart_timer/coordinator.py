@@ -216,6 +216,17 @@ class SmartTimerCoordinator:
         self._notify_update()
         return schedule_id
 
+    async def async_toggle_schedule(self, schedule_id: str, enabled: bool | None = None) -> bool:
+        for s in self.schedules:
+            if s["id"] == schedule_id:
+                s["enabled"] = not s.get("enabled", True) if enabled is None else enabled
+                self._cancel_schedules()
+                self._setup_all_schedules()
+                await self._async_save()
+                self._notify_update()
+                return True
+        return False
+
     async def async_remove_schedule(self, schedule_id: str) -> bool:
         found = None
         for i, s in enumerate(self.schedules):

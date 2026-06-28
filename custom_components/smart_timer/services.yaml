@@ -104,3 +104,26 @@ remove_schedule:
       required: true
       selector:
         text:
+
+toggle_schedule:
+  name: Toggle Schedule
+  description: Enable or disable a schedule rule.
+  fields:
+    entity_id:
+      name: Entity
+      description: The managed device entity.
+      required: true
+      selector:
+        entity:
+    schedule_id:
+      name: Schedule ID
+      description: The ID of the schedule to toggle.
+      required: true
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: "Set to true/false, or omit to toggle."
+      required: false
+      selector:
+        boolean:

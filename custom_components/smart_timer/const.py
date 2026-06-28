@@ -1,5 +1,5 @@
 DOMAIN = "smart_timer"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 STORAGE_KEY = "smart_timer.data"
 STORAGE_VERSION = 1

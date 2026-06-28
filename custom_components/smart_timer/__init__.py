@@ -68,10 +68,20 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
                 f"Schedule {call.data['schedule_id']} not found."
             )
 
+    async def handle_toggle_schedule(call: ServiceCall) -> None:
+        coord = _find_coordinator(hass, call.data["entity_id"])
+        enabled = call.data.get("enabled")
+        toggled = await coord.async_toggle_schedule(call.data["schedule_id"], enabled)
+        if not toggled:
+            raise ServiceValidationError(
+                f"Schedule {call.data['schedule_id']} not found."
+            )
+
     hass.services.async_register(DOMAIN, "start_timer", handle_start_timer)
     hass.services.async_register(DOMAIN, "cancel_timer", handle_cancel_timer)
     hass.services.async_register(DOMAIN, "add_schedule", handle_add_schedule)
     hass.services.async_register(DOMAIN, "remove_schedule", handle_remove_schedule)
+    hass.services.async_register(DOMAIN, "toggle_schedule", handle_toggle_schedule)
 
     return True
 
@@ -164,6 +174,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     entity_id = entry.data.get(CONF_ENTITY_ID)
     if not entity_id:
         return
+    # Clean up persisted timer/schedule data
     async with domain_data["save_lock"]:
         store = domain_data["store"]
         raw = await store.async_load() or {}
@@ -172,3 +183,24 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
             del devices[entity_id]
             raw["devices"] = devices
             await store.async_save(raw)
+    # Clean up restore_state data for our entities
+    slug = entity_id.split(".")[-1]
+    restore_key = "core.restore_state"
+    restore_store = Store(hass, 1, restore_key)
+    try:
+        restore_data = await restore_store.async_load()
+        if restore_data and isinstance(restore_data, list):
+            our_ids = {
+                f"number.{slug}_auto_off",
+                f"number.{slug}_turn_off_in",
+                f"number.{slug}_turn_on_in",
+                f"sensor.{slug}_time_remaining",
+                f"sensor.{slug}_next_schedule",
+                f"binary_sensor.{slug}_timer_active",
+            }
+            filtered = [e for e in restore_data if e.get("state", {}).get("entity_id") not in our_ids]
+            if len(filtered) < len(restore_data):
+                await restore_store.async_save(filtered)
+                _LOGGER.info("Cleaned up restore_state for %s", entity_id)
+    except Exception:
+        pass
