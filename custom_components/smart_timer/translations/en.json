@@ -15,28 +15,27 @@
   },
   "entity": {
     "number": {
-      "auto_off": {
-        "name": "Auto-Off Duration"
-      },
-      "turn_off_in": {
-        "name": "Turn Off In"
-      },
-      "turn_on_in": {
-        "name": "Turn On In"
-      }
+      "auto_off": { "name": "Auto-Off Duration" },
+      "turn_off_in": { "name": "Turn Off In" },
+      "turn_on_in": { "name": "Turn On In" }
     },
     "binary_sensor": {
-      "timer_active": {
-        "name": "Timer Active"
-      }
+      "timer_active": { "name": "Timer Active" }
     },
     "sensor": {
-      "time_remaining": {
-        "name": "Time Remaining"
-      },
-      "next_schedule": {
-        "name": "Next Schedule"
-      }
+      "time_remaining": { "name": "Time Remaining" },
+      "next_schedule": { "name": "Next Schedule" }
+    },
+    "select": {
+      "schedule_action": { "name": "Schedule Action" }
+    },
+    "text": {
+      "schedule_time": { "name": "Schedule Time" },
+      "schedule_days": { "name": "Schedule Days" }
+    },
+    "button": {
+      "add_schedule": { "name": "Add Schedule" },
+      "remove_last_schedule": { "name": "Remove Last Schedule" }
     }
   }
 }

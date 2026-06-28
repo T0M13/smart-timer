@@ -89,7 +89,14 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
 VALID_UNIQUE_SUFFIXES = frozenset({
     "auto_off", "turn_off_in", "turn_on_in",
     "timer_active", "time_remaining", "next_schedule",
+    "schedule_action", "schedule_time", "schedule_days",
+    "add_schedule", "remove_last_schedule",
 })
+
+# Schedule switch entities use "sched_" prefix, handled separately
+def _is_valid_unique_id(uid: str, prefix: str) -> bool:
+    suffix = uid[len(prefix):]
+    return suffix in VALID_UNIQUE_SUFFIXES or suffix.startswith("sched_")
 
 
 def _cleanup_orphaned_entities(
@@ -101,8 +108,7 @@ def _cleanup_orphaned_entities(
     for ent in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
         uid = ent.unique_id or ""
         if uid.startswith(prefix):
-            suffix = uid[len(prefix):]
-            if suffix not in VALID_UNIQUE_SUFFIXES:
+            if not _is_valid_unique_id(uid, prefix):
                 _LOGGER.info("Removing orphaned entity %s (%s)", ent.entity_id, uid)
                 ent_reg.async_remove(ent.entity_id)
 
@@ -190,15 +196,14 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     try:
         restore_data = await restore_store.async_load()
         if restore_data and isinstance(restore_data, list):
-            our_ids = {
-                f"number.{slug}_auto_off",
-                f"number.{slug}_turn_off_in",
-                f"number.{slug}_turn_on_in",
-                f"sensor.{slug}_time_remaining",
-                f"sensor.{slug}_next_schedule",
-                f"binary_sensor.{slug}_timer_active",
-            }
-            filtered = [e for e in restore_data if e.get("state", {}).get("entity_id") not in our_ids]
+            slug_prefix = f"{slug}_"
+            filtered = [
+                e for e in restore_data
+                if not any(
+                    (e.get("state", {}).get("entity_id") or "").endswith(eid)
+                    for eid in [f"{slug_prefix}{s}" for s in VALID_UNIQUE_SUFFIXES]
+                )
+            ]
             if len(filtered) < len(restore_data):
                 await restore_store.async_save(filtered)
                 _LOGGER.info("Cleaned up restore_state for %s", entity_id)

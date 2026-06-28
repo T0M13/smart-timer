@@ -73,9 +73,16 @@ class SmartTimerCoordinator:
         self.auto_off_minutes: float = 0.0
         self.number_entity = None
 
-        # Schedules
+        # Schedules (service-based, multi)
         self.schedules: list[dict] = []
         self._unsub_schedules: list[CALLBACK_TYPE] = []
+
+        # Input state for creating new schedules via entities
+        self.new_schedule_input: dict = {
+            "action": "turn_on",
+            "time": "08:00",
+            "days": "Every Day",
+        }
 
     async def async_setup(self) -> None:
         self._link_device()
