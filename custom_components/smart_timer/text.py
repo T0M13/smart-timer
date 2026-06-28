@@ -88,6 +88,13 @@ class NewScheduleDaysText(TextEntity, RestoreEntity):
     def native_value(self) -> str:
         return self._coordinator.new_schedule_input.get("days", "Every Day")
 
+    @property
+    def extra_state_attributes(self) -> dict:
+        return {
+            "format": "Mon,Tue,Fri",
+            "accepted": "Mon, Tue, Wed, Thu, Fri, Sat, Sun, Every Day, Weekdays, Weekend",
+        }
+
     async def async_set_value(self, value: str) -> None:
         self._coordinator.new_schedule_input["days"] = value.strip()
         self.async_write_ha_state()
