@@ -90,16 +90,16 @@ data:
 ### `smart_timer.remove_schedule`
 Remove a schedule by ID.
 
-## Compared to time_off
+## Compared to other plugins
 
-| Feature | time_off | Smart Timer |
+| Feature | Other Timer | Smart Timer |
 |---------|----------|-------------|
 | Auto-off timer | Yes | Yes |
 | Turn-off-in timer | No | Yes |
 | Turn-on-in timer | No | Yes |
 | Scheduling | No | Yes |
 | Lovelace card | No | Yes |
-| Persists across restarts | Yes | Yes |
+| Persists across restarts | No | Yes |
 | Works from device page | No | Yes |
 
 ## License
